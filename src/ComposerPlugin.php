@@ -177,7 +177,7 @@ PHP;
 
     private function rectorBinPath(): string
     {
-        return $this->absolutePath('vendor/bin/rector');
+        return $this->absolutePath('/vendor/bin/rector');
     }
 
     private function absolutePath(string $path): string
