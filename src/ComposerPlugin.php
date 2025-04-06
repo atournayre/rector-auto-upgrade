@@ -156,10 +156,15 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         $io->debug(sprintf('<info>Temporary config file: %s</info>', $rectorConfigTmpPath));
         $io->debug(sprintf('<info>Temporary config file exists: %s</info>', file_exists($rectorConfigTmpPath) ? 'yes' : 'no'));
 
-        $command = sprintf('%s process --config %s', $this->rectorBinPath(), $tempConfigFile);
-        $io->write(sprintf('<info>Command: %s</info>', $command));
+        $process = new Process([
+            $this->rectorBinPath(),
+            'process',
+            '--config',
+            $tempConfigFile
+        ]);
 
-        $process = new Process([$command]);
+        $io->write(sprintf('<info>Command: %s</info>', $process->getCommandLine()));
+
         $process->run();
 
         @unlink($tempConfigFile);
