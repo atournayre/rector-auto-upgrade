@@ -50,6 +50,8 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         if (!class_exists('Rector\Config\RectorConfig') && !file_exists($this->rectorBinPath())) {
+            $io->debug('Rector bin path: ' . $this->rectorBinPath());
+            $io->debug('Class Rector\Config\RectorConfig exists: ' . class_exists('Rector\Config\RectorConfig') ? 'yes' : 'no');
             $io->write('<warning>Rector is not installed. No automatic updates will be performed.</warning>');
             return;
         }
