@@ -21,7 +21,8 @@
     "symfony/console": "^6.0 || ^7.0"
   },
   "require-dev": {
-    "composer/composer": "^2.0"
+    "composer/composer": "^2.0",
+    "phpunit/phpunit": "^12.1"
   },
   "suggest": {
     "rector/rector": "For auto-upgrade Rector rules"
