@@ -167,9 +167,11 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
         $process->run();
 
-        @unlink($tempConfigFile);
+        $io->write($process->getOutput());
 
         if ($process->isSuccessful()) {
+            @unlink($tempConfigFile);
+
             $io->write('<info>Upgrade successful for ' . $packageName . '</info>');
             return;
         }
