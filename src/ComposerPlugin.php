@@ -10,6 +10,7 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Symfony\Component\Process\Process;
 
 class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -132,16 +133,18 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         $command = sprintf('vendor/bin/rector process --config %s', $tempConfigFile);
         $io->write(sprintf('<info>Command: %s</info>', $command));
 
-        exec($command, $output, $returnCode);
+        $process = new Process([$command]);
+        $process->run();
 
         @unlink($tempConfigFile);
 
-        if ($returnCode !== 0) {
-            $io->write('<error>Upgrade failed for ' . $packageName . '</error>');
-            $io->write(implode("\n", $output));
-        } else {
+        if ($process->isSuccessful()) {
             $io->write('<info>Upgrade successful for ' . $packageName . '</info>');
+            return;
         }
+
+        $io->write('<error>Upgrade failed for ' . $packageName . '</error>');
+        $io->write($process->getErrorOutput());
     }
 
     private function createTemporaryConfig(string $packageConfigPath): string
