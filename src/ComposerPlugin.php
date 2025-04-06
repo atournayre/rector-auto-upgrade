@@ -187,23 +187,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
     private function createTemporaryConfig(string $rectorUgradePath, string $rectorConfigTmpPath): string
     {
-        $src = $this->absolutePath('/src');
-
-        $config = <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Rector\Config\RectorConfig;
-
-return static function (RectorConfig \$rectorConfig): void {
-    \$rectorConfig->paths([
-        '{$src}',
-    ]);
-    
-    require_once '{$rectorUgradePath}';
-};
-PHP;
+        $config = file_get_contents($rectorUgradePath);
 
         file_put_contents($rectorConfigTmpPath, $config);
 
