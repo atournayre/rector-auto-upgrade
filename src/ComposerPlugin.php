@@ -17,6 +17,13 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
     protected Composer $composer;
     protected IOInterface $io;
 
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            ScriptEvents::POST_UPDATE_CMD => 'onPostUpdate',
+        ];
+    }
+
     public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
@@ -31,13 +38,6 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
     public function uninstall(Composer $composer, IOInterface $io): void
     {
         // no-op
-    }
-
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            ScriptEvents::POST_UPDATE_CMD => 'onPostUpdate',
-        ];
     }
 
     public function onPostUpdate(Event $event): void
@@ -64,9 +64,8 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
         foreach ($packages as $package) {
             $version = $package->getFullPrettyVersion();
-            $installPath = $installationManager->getInstallPath($package);
 
-            $rectorConfigPath = sprintf('%s/rector/upgrade/%s.php', $installPath, $version);
+            $rectorConfigPath = $this->rectorUgradePath($installationManager->getInstallPath($package), $version);
             $io->debug(sprintf('Checking for upgrade file at %s', $rectorConfigPath));
 
             if (file_exists($rectorConfigPath)) {
@@ -76,9 +75,9 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
                     sprintf(
                         'Do you want to run Rector upgrade for package %s (version %s)? [y/N] ',
                         $packageName,
-                        $version
+                        $version,
                     ),
-                    'n'
+                    'n',
                 );
 
                 if (strtolower($answer) === 'y') {
@@ -116,6 +115,21 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         return false;
+    }
+
+    private function rectorBinPath(): string
+    {
+        return $this->absolutePath('/vendor/bin/rector');
+    }
+
+    private function absolutePath(string $path): string
+    {
+        return getcwd() . $path;
+    }
+
+    private function rectorUgradePath(string $installPath, string $version): string
+    {
+        return sprintf('%s/rector/upgrade/%s/rector.php', $installPath, $version);
     }
 
     private function runRectorUpgrade(array $upgrade, IOInterface $io): void
@@ -173,15 +187,5 @@ PHP;
         file_put_contents($tempFile, $config);
 
         return $tempFile;
-    }
-
-    private function rectorBinPath(): string
-    {
-        return $this->absolutePath('/vendor/bin/rector');
-    }
-
-    private function absolutePath(string $path): string
-    {
-        return getcwd() . $path;
     }
 }
