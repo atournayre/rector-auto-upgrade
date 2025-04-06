@@ -64,15 +64,26 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
             $version = $package->getFullPrettyVersion();
             $installPath = $installationManager->getInstallPath($package);
 
-            $rectorConfigPath = $installPath . '/config/rector/upgrade/' . $version . '/rector.php';
-            $io->debug(sprintf('Checking for config file at %s', $rectorConfigPath));
+            $rectorConfigPath = $installPath . '/rector/upgrade/' . $version . '/rector.php';
+            $io->debug(sprintf('Checking for upgrade file at %s', $rectorConfigPath));
 
             if (file_exists($rectorConfigPath)) {
-                $upgradesToRun[] = [
-                    'package' => $packageName,
-                    'version' => $version,
-                    'config_path' => $rectorConfigPath,
-                ];
+                $answer = $io->ask(
+                    sprintf(
+                        'Do you want to run Rector upgrade for package %s (version %s)? [y/N] ',
+                        $packageName,
+                        $version
+                    ),
+                    'n'
+                );
+
+                if (strtolower($answer) === 'y') {
+                    $upgradesToRun[] = [
+                        'package' => $packageName,
+                        'version' => $version,
+                        'config_path' => $rectorConfigPath,
+                    ];
+                }
             }
         }
 
