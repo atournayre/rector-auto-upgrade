@@ -49,7 +49,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        if (!class_exists('Rector\Config\RectorConfig') && !file_exists('vendor/bin/rector')) {
+        if (!class_exists('Rector\Config\RectorConfig') && !file_exists($this->rectorBinPath())) {
             $io->write('<warning>Rector is not installed. No automatic updates will be performed.</warning>');
             return;
         }
@@ -61,14 +61,15 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         $upgradesToRun = [];
 
         foreach ($packages as $package) {
-            $packageName = $package->getName();
             $version = $package->getFullPrettyVersion();
             $installPath = $installationManager->getInstallPath($package);
 
-            $rectorConfigPath = $installPath . '/rector/upgrade/' . $version . '/rector.php';
+            $rectorConfigPath = sprintf('%s/rector/upgrade/%s.php', $installPath, $version);
             $io->debug(sprintf('Checking for upgrade file at %s', $rectorConfigPath));
 
             if (file_exists($rectorConfigPath)) {
+                $packageName = $package->getName();
+
                 $answer = $io->ask(
                     sprintf(
                         'Do you want to run Rector upgrade for package %s (version %s)? [y/N] ',
@@ -100,8 +101,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
     private function isDevelopmentEnvironment(): bool
     {
-
-        if (file_exists('vendor/bin/rector')) {
+        if (file_exists($this->rectorBinPath())) {
             return true;
         }
 
@@ -130,7 +130,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
         $tempConfigFile = $this->createTemporaryConfig($configPath);
 
-        $command = sprintf('vendor/bin/rector process --config %s', $tempConfigFile);
+        $command = sprintf('%s process --config %s', $this->rectorBinPath(), $tempConfigFile);
         $io->write(sprintf('<info>Command: %s</info>', $command));
 
         $process = new Process([$command]);
@@ -150,7 +150,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
     private function createTemporaryConfig(string $packageConfigPath): string
     {
         $tempFile = sys_get_temp_dir() . '/rector_upgrade_' . uniqid() . '.php';
-        $src = getcwd() . '/src';
+        $src = $this->absolutePath('/src');
 
         $config = <<<PHP
 <?php
@@ -171,5 +171,15 @@ PHP;
         file_put_contents($tempFile, $config);
 
         return $tempFile;
+    }
+
+    private function rectorBinPath(): string
+    {
+        return $this->absolutePath('vendor/bin/rector');
+    }
+
+    private function absolutePath(string $path): string
+    {
+        return getcwd() . $path;
     }
 }
