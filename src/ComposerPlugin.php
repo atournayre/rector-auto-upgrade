@@ -47,7 +47,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        if (!class_exists('Rector\Core\Configuration\Configuration')) {
+        if (!class_exists('Rector\Config\RectorConfig\RectorConfig')) {
             $io->write('<info>To do so, run: composer require rector/rector</info>');
             return;
         }
