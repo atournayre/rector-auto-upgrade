@@ -64,8 +64,14 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
 
         foreach ($packages as $package) {
             $version = $package->getFullPrettyVersion();
+            $installPath = $installationManager->getInstallPath($package);
 
-            $rectorConfigPath = $this->rectorUgradePath($installationManager->getInstallPath($package), $version);
+            if (null === $installPath) {
+                $io->debug(sprintf('Package %s has no install path', $package->getName()));
+                continue;
+            }
+
+            $rectorConfigPath = $this->rectorUgradePath($installPath, $version);
             $io->debug(sprintf('Checking for upgrade file at %s', $rectorConfigPath));
 
             if (file_exists($rectorConfigPath)) {
