@@ -147,6 +147,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
     private function createTemporaryConfig(string $packageConfigPath): string
     {
         $tempFile = sys_get_temp_dir() . '/rector_upgrade_' . uniqid() . '.php';
+        $src = getcwd() . '/src';
 
         $config = <<<PHP
 <?php
@@ -157,7 +158,7 @@ use Rector\Config\RectorConfig;
 
 return static function (RectorConfig \$rectorConfig): void {
     \$rectorConfig->paths([
-        getcwd() . '/src',
+        '{$src}',
     ]);
     
     require_once '{$packageConfigPath}';
