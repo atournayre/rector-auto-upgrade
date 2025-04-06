@@ -1,0 +1,28 @@
+{
+  "name": "atournayre/rector-auto-upgrade",
+  "description": "Composer plugin to auto-upgrade using Rector",
+  "type": "composer-plugin",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aurelien Tournayre",
+      "email": "aurelien.tournayre@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Atournayre\\RectorAutoUpgrade\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.2",
+    "symfony/finder": "^6.0",
+    "composer/composer": "^2.8"
+  },
+  "require-dev": {
+    "rector/rector": "^1.1"
+  },
+  "suggest": {
+    "rector/rector": "For auto-upgrade Rector rules"
+  }
+}
