@@ -64,7 +64,8 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
             $version = $package->getFullPrettyVersion();
             $installPath = $installationManager->getInstallPath($package);
 
-            $rectorConfigPath = $installPath . '/config/rector/upgrade/' . $version . '.php';
+            $rectorConfigPath = $installPath . '/config/rector/upgrade/' . $version . '/rector.php';
+            $io->debug(sprintf('Checking for config file at %s', $rectorConfigPath));
 
             if (file_exists($rectorConfigPath)) {
                 $upgradesToRun[] = [
