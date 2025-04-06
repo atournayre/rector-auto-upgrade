@@ -71,10 +71,10 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            $rectorConfigPath = $this->rectorUgradePath($installPath, $version);
-            $io->debug(sprintf('Checking for upgrade file at %s', $rectorConfigPath));
+            $rectorUgradePath = $this->rectorUgradePath($installPath, $version);
+            $io->debug(sprintf('Checking for upgrade file at %s', $rectorUgradePath));
 
-            if (file_exists($rectorConfigPath)) {
+            if (file_exists($rectorUgradePath)) {
                 $packageName = $package->getName();
 
                 $answer = $io->ask(
@@ -90,7 +90,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
                     $upgradesToRun[] = [
                         'package' => $packageName,
                         'version' => $version,
-                        'config_path' => $rectorConfigPath,
+                        'config_path' => $rectorUgradePath,
                     ];
                 }
             }
@@ -150,7 +150,11 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
             $version,
         ));
 
-        $tempConfigFile = $this->createTemporaryConfig($configPath);
+        $rectorConfigTmpPath = $this->rectorConfigTmpPath($version);
+        $tempConfigFile = $this->createTemporaryConfig($configPath, $rectorConfigTmpPath);
+
+        $io->debug(sprintf('<info>Temporary config file: %s</info>', $rectorConfigTmpPath));
+        $io->debug(sprintf('<info>Temporary config file exists: %s</info>', file_exists($rectorConfigTmpPath) ? 'yes' : 'no'));
 
         $command = sprintf('%s process --config %s', $this->rectorBinPath(), $tempConfigFile);
         $io->write(sprintf('<info>Command: %s</info>', $command));
@@ -169,9 +173,13 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         $io->write($process->getErrorOutput());
     }
 
-    private function createTemporaryConfig(string $packageConfigPath): string
+    private function rectorConfigTmpPath(string $version): string
     {
-        $tempFile = sys_get_temp_dir() . '/rector_upgrade_' . uniqid() . '.php';
+        return sprintf('%s/rector_upgrade_%s.php', sys_get_temp_dir(), $version);
+    }
+
+    private function createTemporaryConfig(string $rectorUgradePath, string $rectorConfigTmpPath): string
+    {
         $src = $this->absolutePath('/src');
 
         $config = <<<PHP
@@ -186,12 +194,12 @@ return static function (RectorConfig \$rectorConfig): void {
         '{$src}',
     ]);
     
-    require_once '{$packageConfigPath}';
+    require_once '{$rectorUgradePath}';
 };
 PHP;
 
-        file_put_contents($tempFile, $config);
+        file_put_contents($rectorConfigTmpPath, $config);
 
-        return $tempFile;
+        return $rectorConfigTmpPath;
     }
 }
