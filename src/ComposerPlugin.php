@@ -71,10 +71,10 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            $rectorUgradePath = $this->rectorUgradePath($installPath, $version);
-            $io->debug(sprintf('Checking for upgrade file at %s', $rectorUgradePath));
+            $rectorSetPath = $this->rectorSetPath($installPath, $version);
+            $io->debug(sprintf('Checking for Rector set at %s', $rectorSetPath));
 
-            if (file_exists($rectorUgradePath)) {
+            if (file_exists($rectorSetPath)) {
                 $packageName = $package->getName();
 
                 $answer = $io->ask(
@@ -90,7 +90,7 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
                     $upgradesToRun[] = [
                         'package' => $packageName,
                         'version' => $version,
-                        'config_path' => $rectorUgradePath,
+                        'config_path' => $rectorSetPath,
                     ];
                 }
             }
@@ -136,6 +136,11 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
     private function rectorUgradePath(string $installPath, string $version): string
     {
         return sprintf('%s/rector/upgrade/%s/rector.php', $installPath, $version);
+    }
+
+    private function rectorSetPath(string $installPath, string $version): string
+    {
+        return sprintf('%s/rector/sets/%s.php', $installPath, $version);
     }
 
     private function runRectorUpgrade(array $upgrade, IOInterface $io): void
@@ -185,13 +190,27 @@ class ComposerPlugin implements PluginInterface, EventSubscriberInterface
         return sprintf('%s/rector_upgrade_%s.php', sys_get_temp_dir(), $version);
     }
 
-    private function createTemporaryConfig(string $rectorUgradePath, string $rectorConfigTmpPath): string
+    private function createTemporaryConfig(string $rectorSetPath, string $rectorConfigTmpPath): string
     {
-        $config = str_replace(
-            '%currentWorkingDirectory%',
-            $this->absolutePath(''),
-            file_get_contents($rectorUgradePath)
-        );
+        $currentWorkingDirectory = $this->absolutePath('');
+
+        $config = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+
+return static function (RectorConfig \$rectorConfig): void {
+    \$rectorConfig->sets([
+        '{$rectorSetPath}'
+    ]);
+
+    \$rectorConfig->paths([
+        '{$currentWorkingDirectory}/src',
+    ]);
+};
+PHP;
 
         file_put_contents($rectorConfigTmpPath, $config);
 
