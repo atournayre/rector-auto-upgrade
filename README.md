@@ -23,7 +23,7 @@ composer require --dev atournayre/rector-auto-upgrade
 ## How It Works
 
 1. After running `composer update`, the plugin activates
-2. It scans all installed packages for Rector upgrade configurations at `vendor/package-name/rector/upgrade/[X.Y.Z]/rector.php`
+2. It scans all installed packages for Rector upgrade configurations at `vendor/package-name/rector/sets/[X.Y.Z].php`
 3. For each found configuration, it prompts you if you want to run the upgrade
 4. If you confirm, it creates a temporary configuration file and runs Rector with that configuration
 
@@ -31,17 +31,16 @@ composer require --dev atournayre/rector-auto-upgrade
 
 For package maintainers who want to make their packages compatible with this plugin, you need to:
 
-1. Create a directory structure in your package: `rector/upgrade/[X.Y.Z]`
-2. Add a `rector.php` configuration file in that directory
+1. Create a directory structure in your package: `rector/sets`
+2. Add a `[X.Y.Z].php` configuration file in that directory
 3. The plugin will automatically detect this configuration during updates
 
 Example directory structure in your package:
 ```
 ├── src/
 ├── rector/
-│   └── upgrade/
-│       └── 2.0.0/
-│           └── rector.php
+│   └── sets/
+│       └── 2.0.0.php
 └── composer.json
 ```
 
