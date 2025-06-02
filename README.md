@@ -1,75 +1,81 @@
 # Rector Auto Upgrade Composer Plugin
 
-A Composer plugin that automatically runs Rector upgrades for your installed packages after a `composer update`.
+**Automate code migrations related to dependency version upgrades using Rector.**  
+This Composer plugin enables package maintainers to provide versioned Rector sets that are automatically executed when packages are updated.
 
-## Description
+---
 
-This plugin scans your installed packages after running `composer update` and checks if they provide Rector upgrade configurations. If found, it offers to automatically apply these upgrades to your codebase, making package version migrations easier.
+## ✨ Purpose
 
-## Installation
+`rector-auto-upgrade` defines a standard for embedding versioned Rector "sets" into PHP packages, allowing automated code migration when users upgrade dependencies.
 
-Install the package via Composer:
+Each version of a package can provide a Rector set describing necessary changes (e.g., class renaming, method signature updates, deprecations, etc.).
+
+---
+
+## 📦 How It Works
+
+- When `composer update` is executed,
+- The plugin detects which packages are being updated,
+- For each updated package, it looks for a Rector set matching the new version,
+- If found, the Rector set is executed to automatically refactor the user's code.
+
+---
+
+## 🗂️ Expected Package Structure
+
+Each package providing migration support must include the following structure:
+
+```
+my-package/
+├── rector/
+│   └── sets/
+│       ├── 2.0.0.php
+│       ├── 2.1.0.php
+```
+
+- Each file name corresponds to a target version of the package.
+- The content of each file must return a standard Rector configuration closure.
+
+---
+
+## ⚙️ Installation
 
 ```bash
 composer require --dev atournayre/rector-auto-upgrade
 ```
 
-## Requirements
+⚠️ This plugin must only be used in a **development environment**.
 
-- PHP 8.0 or higher
-- Composer 2.0 or higher
-- Rector must be installed in your project
+---
 
-## How It Works
+## 📋 Requirements
 
-1. After running `composer update`, the plugin activates
-2. It scans all installed packages for Rector upgrade configurations at `vendor/package-name/rector/sets/[X.Y.Z].php`
-3. For each found configuration, it prompts you if you want to run the upgrade
-4. If you confirm, it creates a temporary configuration file and runs Rector with that configuration
+- PHP >= 8.1
+- [Rector](https://github.com/rectorphp/rector) must be installed in the project.
+- Composer version 2.0 or higher.
+- Packages must include `rector/sets/{version}.php` files for their upgrades.
 
-## Package Compatibility
+---
 
-For package maintainers who want to make their packages compatible with this plugin, you need to:
+## 🧪 Example Usage
 
-1. Create a directory structure in your package: `rector/sets`
-2. Add a `[X.Y.Z].php` configuration file in that directory
-3. The plugin will automatically detect this configuration during updates
+1. A package `my/package` provides a file `rector/sets/2.0.0.php`.
+2. The user updates `my/package` from version `1.4.0` to `2.0.0`.
+3. The plugin detects this version change, finds the matching Rector set, and runs it.
+4. The user’s code is automatically updated to comply with `my/package` version `2.0.0`.
 
-Example directory structure in your package:
-```
-├── src/
-├── rector/
-│   └── sets/
-│       └── 2.0.0.php
-└── composer.json
-```
+---
 
-## Configuration Variables
+## ❗ Limitations & Recommendations
 
-In your Rector configuration file, you can use the following variable:
+- This plugin is intended **only for local**.
+- Use version control to review and commit changes after execution.
+- Only upgrades to higher versions are currently supported.
 
-- `%currentWorkingDirectory%` - Will be replaced with the absolute path to the user's project root
+---
 
-Example of a Rector configuration file:
+## 🤝 Contributing
 
-```php
-<?php
-
-declare(strict_types=1);
-
-use Rector\Config\RectorConfig;
-
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
-        '%currentWorkingDirectory%/src',
-    ]);
-};
-```
-
-## Development Environment Detection
-
-The plugin only runs in development environments. An environment is considered a development environment if:
-
-- The Rector binary is installed
-- The `APP_ENV` environment variable is set to `dev`
-- The `APP_ENV` environment variable is not set to `prod` or `production`
+Feedback and contributions are welcome.  
+Feel free to open an issue or submit a pull request.
